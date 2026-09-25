@@ -221,25 +221,24 @@ export const renderPoster = async (
               ${escapeHtml(data.designation)}
             </div>
 
-            ${
-              data.organization ||
-              data.party ||
-              data.district
-                ? `
+            ${data.organization ||
+        data.party ||
+        data.district
+        ? `
                   <div class="organization">
                     ${escapeHtml(
-                      [
-                        data.organization,
-                        data.party,
-                        data.district
-                      ]
-                        .filter(Boolean)
-                        .join(" • ")
-                    )}
+          [
+            data.organization,
+            data.party,
+            data.district
+          ]
+            .filter(Boolean)
+            .join(" • ")
+        )}
                   </div>
                 `
-                : ""
-            }
+        : ""
+      }
 
           </div>
 
@@ -261,9 +260,9 @@ export const renderPoster = async (
       </html>
     `;
 
-//     await page.setContent(html, {
-//       waitUntil: "networkidle0"
-//     });
+    await page.setContent(html, {
+      waitUntil: "load"
+    });
 
     const buffer = await page.screenshot({
       type: "png",

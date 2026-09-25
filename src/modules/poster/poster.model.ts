@@ -31,7 +31,9 @@ const posters = () =>
       getDb().collection<PosterDocument>("posters");
 
 const objectId = (value: string | ObjectId) =>
-      value instanceof ObjectId ? value : new ObjectId(value);
+      value instanceof ObjectId
+            ? value
+            : new ObjectId(value);
 
 const normalizeFilter = (filter: PosterFilter): Filter<PosterDocument> => {
       const normalized: Filter<PosterDocument> = {};
@@ -90,5 +92,11 @@ export const Poster = {
                               updatedAt: new Date()
                         }
                   }
-            )
+            ),
+
+      deleteOne: (filter: PosterFilter) =>
+            posters().deleteOne(normalizeFilter(filter)),
+
+      deleteMany: (filter: PosterFilter) =>
+            posters().deleteMany(normalizeFilter(filter))
 };

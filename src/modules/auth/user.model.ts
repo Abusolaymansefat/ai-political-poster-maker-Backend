@@ -19,6 +19,16 @@ export const User = {
       findOne: (filter: Filter<UserDocument>) =>
             users().findOne(filter),
 
+      findAll: () =>
+            users()
+                  .find({}, {
+                        projection: {
+                              passwordHash: 0
+                        }
+                  })
+                  .sort({ createdAt: -1 })
+                  .toArray(),
+
       create: async (input: {
             name: string;
             email: string;
@@ -38,5 +48,10 @@ export const User = {
 
             await users().insertOne(user);
             return user;
-      }
+      },
+
+      deleteOne: (id: string) =>
+            users().deleteOne({
+                  _id: new ObjectId(id)
+            })
 };

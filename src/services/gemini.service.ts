@@ -10,6 +10,26 @@ interface PosterData {
   headline: string;
 }
 
+const fallbackLayout = {
+  backgroundStyle: "national color theme",
+  headlinePosition: "top-center",
+  headlineSize: "large",
+  photoLayout: "three-horizontal",
+  photoPosition: "top",
+  decoration: "simple floral border",
+  footerStyle: "bottom bar",
+  colorScheme: "green-red"
+};
+
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const isRetryableGeminiError = (error: unknown) => {
+  const status = (error as { status?: number })?.status;
+  return status === 429 || status === 500 || status === 502 ||
+    status === 503 || status === 504;
+};
+
 export const generatePosterLayout = async (
   data: PosterData
 ) => {
@@ -49,13 +69,27 @@ Important:
 - Do not include political persuasion.
 `;
 
-  const response = await gemini.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt
-  });
+  let response;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      response = await gemini.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: prompt
+      });
+      break;
+    } catch (error) {
+      if (!isRetryableGeminiError(error) || attempt === 2) {
+        console.warn("Gemini layout generation unavailable; using fallback layout.");
+        return fallbackLayout;
+      }
+
+      await wait(500 * 2 ** attempt);
+    }
+  }
 
   const text =
-    response.text?.trim() || "{}";
+    response?.text?.trim() || "{}";
 
   const cleaned = text
     .replace(/^```json/, "")
@@ -66,15 +100,6 @@ Important:
   try {
     return JSON.parse(cleaned);
   } catch {
-    return {
-      backgroundStyle: "national color theme",
-      headlinePosition: "top-center",
-      headlineSize: "large",
-      photoLayout: "three-horizontal",
-      photoPosition: "top",
-      decoration: "simple floral border",
-      footerStyle: "bottom bar",
-      colorScheme: "green-red"
-    };
+    return fallbackLayout;
   }
 };

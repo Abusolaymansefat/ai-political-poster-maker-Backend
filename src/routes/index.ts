@@ -12,6 +12,11 @@ import posterRoutes
 import {
       generationRateLimit
 } from "../middleware/rate-limit.middleware";
+import { authMiddleware } from "../modules/auth/auth.middleware";
+import { upload } from "../lib/upload.middleware";
+import { uploadImage } from "../modules/Cloudinary/cloudinary.controller";
+import adminRoutes from "../modules/admin/admin.route";
+import { adminMiddleware } from "../middleware/admin.middleware";
 
 const router = Router();
 
@@ -25,10 +30,24 @@ router.use(
       templateRoutes
 );
 
+router.post(
+      "/upload",
+      authMiddleware,
+      upload.single("file"),
+      uploadImage
+);
+
 router.use(
       "/posters",
       generationRateLimit,
       posterRoutes
+);
+
+router.use(
+      "/admin",
+      authMiddleware,
+      adminMiddleware,
+      adminRoutes
 );
 
 export default router;

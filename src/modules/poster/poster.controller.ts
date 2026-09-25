@@ -1,6 +1,10 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../auth/auth.middleware";
-import { createPoster } from "./poster.service";
+import {
+      createPoster,
+      deletePoster as deletePosterService,
+      regeneratePoster
+} from "./poster.service";
 import { Poster } from "./poster.model";
 
 export const createPosterController = async (
@@ -109,7 +113,46 @@ export const getMyPosters = async (
 
       const posters = await Poster.find({
             userId: req.user.userId
-      }).sort({ createdAt: -1 });
+      })
+            .sort({ createdAt: -1 })
+            .toArray();
+
+      return res.json({
+            success: true,
+            data: posters
+      });
+};
+
+export const getUserPosters = async (
+      req: AuthRequest,
+      res: Response
+) => {
+      if (!req.user) {
+            return res.status(401).json({
+                  success: false,
+                  message: "Unauthorized"
+            });
+      }
+
+      const userId = req.params.userId;
+
+      if (typeof userId !== "string") {
+            return res.status(400).json({
+                  success: false,
+                  message: "Invalid user id"
+            });
+      }
+
+      if (userId !== req.user.userId && req.user.role !== "admin") {
+            return res.status(403).json({
+                  success: false,
+                  message: "You can only view your own posters"
+            });
+      }
+
+      const posters = await Poster.find({ userId })
+            .sort({ createdAt: -1 })
+            .toArray();
 
       return res.json({
             success: true,
@@ -153,4 +196,84 @@ export const getPoster = async (
             success: true,
             data: poster
       });
+};
+
+export const regeneratePosterController = async (
+      req: AuthRequest,
+      res: Response
+) => {
+      if (!req.user) {
+            return res.status(401).json({
+                  success: false,
+                  message: "Unauthorized"
+            });
+      }
+
+      const posterId = req.params.id;
+
+      if (typeof posterId !== "string") {
+            return res.status(400).json({
+                  success: false,
+                  message: "Invalid poster id"
+            });
+      }
+
+      try {
+            const poster = await regeneratePoster(
+                  posterId,
+                  req.user.userId
+            );
+
+            return res.json({
+                  success: true,
+                  message: "Poster regenerated successfully",
+                  data: poster
+            });
+      } catch (error: any) {
+            const status = error.message === "Poster not found"
+                  ? 404
+                  : error.message.startsWith("Maximum")
+                        ? 429
+                        : 400;
+
+            return res.status(status).json({
+                  success: false,
+                  message: error.message
+            });
+      }
+};
+
+export const deletePosterController = async (
+      req: AuthRequest,
+      res: Response
+) => {
+      if (!req.user) {
+            return res.status(401).json({
+                  success: false,
+                  message: "Unauthorized"
+            });
+      }
+
+      const posterId = req.params.id;
+
+      if (typeof posterId !== "string") {
+            return res.status(400).json({
+                  success: false,
+                  message: "Invalid poster id"
+            });
+      }
+
+      try {
+            await deletePosterService(posterId, req.user.userId);
+
+            return res.json({
+                  success: true,
+                  message: "Poster deleted successfully"
+            });
+      } catch (error: any) {
+            return res.status(404).json({
+                  success: false,
+                  message: error.message
+            });
+      }
 };

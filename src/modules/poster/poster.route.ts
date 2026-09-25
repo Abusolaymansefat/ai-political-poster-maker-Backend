@@ -11,7 +11,10 @@ import {
 import {
       createPosterController,
       getPoster,
-      getMyPosters
+      getMyPosters,
+      getUserPosters,
+      regeneratePosterController,
+      deletePosterController
 } from "./poster.controller";
 
 const router = Router();
@@ -27,6 +30,21 @@ router.post(
 router.get(
       "/my-posters",
       getMyPosters
+);
+
+router.get(
+      "/user/:userId",
+      getUserPosters
+);
+
+router.post(
+      "/:id/regenerate",
+      regeneratePosterController
+);
+
+router.delete(
+      "/:id",
+      deletePosterController
 );
 
 router.get(
