@@ -9,9 +9,6 @@ import templateRoutes
 import posterRoutes
       from "../modules/poster/poster.route";
 
-import {
-      generationRateLimit
-} from "../middleware/rate-limit.middleware";
 import { authMiddleware } from "../modules/auth/auth.middleware";
 import { upload } from "../lib/upload.middleware";
 import { uploadImage } from "../modules/Cloudinary/cloudinary.controller";
@@ -39,7 +36,6 @@ router.post(
 
 router.use(
       "/posters",
-      generationRateLimit,
       posterRoutes
 );
 

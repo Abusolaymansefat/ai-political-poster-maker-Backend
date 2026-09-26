@@ -9,6 +9,10 @@ import {
 } from "../../lib/upload.middleware";
 
 import {
+      generationRateLimit
+} from "../../middleware/rate-limit.middleware";
+
+import {
       createPosterController,
       getPoster,
       getMyPosters,
@@ -23,6 +27,7 @@ router.use(authMiddleware);
 
 router.post(
       "/",
+      generationRateLimit,
       upload.array("photos", 3),
       createPosterController
 );
@@ -39,6 +44,7 @@ router.get(
 
 router.post(
       "/:id/regenerate",
+      generationRateLimit,
       regeneratePosterController
 );
 
